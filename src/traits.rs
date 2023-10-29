@@ -1,9 +1,8 @@
 use std::fmt::Debug;
 
-use ego_tree::{NodeId, Tree};
-
 use crate::aliases::{LazyMctsNode, LazyMctsTree, Num};
 use crate::mcts_node::MctsNode;
+use crate::tree::{NodeId, Tree};
 use crate::Nat;
 
 pub trait GameTrait: Clone {
@@ -63,7 +62,7 @@ pub trait LazyTreePolicy<
     /// Choose the best node, for example we apply the UCT to choose the best node then we expand
     /// it and we return the expansion.
     fn tree_policy(
-        tree: &mut LazyMctsTree<State, Reward, A>,
+        tree: &LazyMctsTree<State, Reward, A>,
         root_state: State,
         evaluator_args: &EV::Args,
     ) -> (NodeId, State);
@@ -95,7 +94,7 @@ pub trait BackPropPolicy<
 >
 {
     fn backprop(
-        tree: &mut Tree<MctsNode<State, Move, Reward, AdditionalInfo>>,
+        tree: &Tree<MctsNode<State, Move, Reward, AdditionalInfo>>,
         leaf: NodeId,
         playout_result: EvalResult,
     );

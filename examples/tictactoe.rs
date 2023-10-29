@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 
 use num_traits::FloatConst;
 use rand::thread_rng;
 use rayon::prelude::*;
 
-use oxymcts::{GameTrait, mcts_uct_agent, random_agent};
+use oxymcts::{mcts_uct_agent, random_agent, GameTrait};
 
 #[derive(Debug, Clone, Default)]
 struct TicTacToe {
@@ -115,7 +116,13 @@ impl GameTrait for TicTacToe {
     }
 
     fn hash(&self) -> u64 {
-        0
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.turn.hash(&mut hasher);
+        self.grid.hash(&mut hasher);
+        self.sums_cols.hash(&mut hasher);
+        self.sums_diags.hash(&mut hasher);
+        self.sums_rows.hash(&mut hasher);
+        hasher.finish()
     }
 
     fn is_final(&self) -> bool {
@@ -159,7 +166,7 @@ fn run_a_game(n: usize, c: f64) -> u8 {
         let m = random_agent(&tictactoe, &mut rng);
         tictactoe.play(m);
         if !tictactoe.is_final() {
-            let m = mcts_uct_agent(&tictactoe, 1000, c);
+            let m = mcts_uct_agent(tictactoe.clone(), 1000, c);
             tictactoe.play(m);
         }
     }
@@ -167,6 +174,13 @@ fn run_a_game(n: usize, c: f64) -> u8 {
 }
 
 fn main() {
+    // init tracing subscriber at debug level
+    let subscriber = tracing_subscriber::FmtSubscriber::builder()
+        .with_max_level(tracing::Level::INFO)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+
     let mut rng = thread_rng();
     println!("Player 1: Cross (Random bot)");
     println!("Player 2: Circle (MCTS)");
@@ -178,7 +192,7 @@ fn main() {
         println!("{}", tictactoe);
         if !tictactoe.is_final() {
             println!("Mcts turn: ");
-            let move_mcts = dbg!(mcts_uct_agent(&tictactoe, 1000, f64::SQRT_2()));
+            let move_mcts = dbg!(mcts_uct_agent(tictactoe.clone(), 1000, f64::SQRT_2()));
             tictactoe.play(move_mcts);
             println!("{}", tictactoe);
         }

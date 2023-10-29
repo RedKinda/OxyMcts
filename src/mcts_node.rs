@@ -5,6 +5,7 @@ use num_traits::{ToPrimitive, Zero};
 
 use crate::aliases::Nat;
 use crate::traits::GameTrait;
+use crate::tree::Hashed;
 
 #[derive(Clone)]
 pub struct MctsNode<T, Move, Reward, AdditionalInfo = ()>
@@ -93,5 +94,17 @@ where
 {
     fn eq(&self, other: &Self) -> bool {
         self.hash == other.hash
+    }
+}
+
+impl<T, M, R, A> Hashed for MctsNode<T, M, R, A>
+where
+    R: Clone + Add + Div + Zero + ToPrimitive,
+    T: Clone,
+    M: Clone,
+    A: Clone + Default,
+{
+    fn hash(&self) -> u64 {
+        self.hash
     }
 }
